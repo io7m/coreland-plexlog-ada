@@ -1,0 +1,60 @@
+#!/bin/sh
+
+dir="testdata/log"
+
+cleanup()
+{
+  rm -r "$dir"
+}
+
+die()
+{
+  echo "fatal: $1" 1>&2
+  cleanup
+  exit 1
+}
+
+makedir()
+{
+  echo "mkdir $1"
+  mkdir "$1" || die "could not create $1"
+}
+
+exists()
+{
+  if [ ! -f "$dir/$1" ]; then die "$dir/$1 does not exist"; fi
+}
+
+nonexistent()
+{
+  if [ -f "$dir/$1" ]; then die "$dir/$1 exists"; fi
+}
+
+log()
+{
+  echo "log $1 $2"
+  ./lines "$1" "$2" | ./log "$dir" 0 4096 || die "could not write log"
+}
+
+check_num()
+{
+  val=`grep "$1" "$dir"/* | wc -l`
+  if [ $val -ne $2 ]; then die "expected $2 written lines of $1, got $val"; fi
+}
+
+cleanup
+makedir "$dir"
+
+log 4096 "AAAA"
+log 4096 "BBBB"
+log 4096 "CCCC"
+log 4096 "DDDD"
+
+check_num "AAAA" 4096
+check_num "BBBB" 4096
+check_num "CCCC" 4096
+check_num "DDDD" 4096
+
+exists "current"
+
+cleanup

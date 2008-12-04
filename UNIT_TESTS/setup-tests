@@ -1,0 +1,18 @@
+#!/bin/sh
+
+makedir()
+{
+  if [ ! -d "$1" ]
+  then
+    mkdir "$1" || exit 112
+  fi
+}
+
+makedir testdata
+makedir testdata/init
+makedir testdata/lock
+makedir testdata/lock1
+makedir testdata/lock2
+makedir testdata/lock3
+makedir testdata/lock4
+makedir testdata/log

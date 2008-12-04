@@ -1,0 +1,8 @@
+
+-- ./plexlog.apk
+pragma source_file_name(plexlog, spec_file_name => "plexlog.ads");
+pragma source_file_name(plexlog, body_file_name => "plexlog.adb");
+
+-- UNIT_TESTS/dir.apk
+pragma source_file_name(dir, spec_file_name => "dir.ads");
+pragma source_file_name(dir, body_file_name => "dir.adb");

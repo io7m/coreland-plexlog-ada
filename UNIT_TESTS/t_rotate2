@@ -1,0 +1,58 @@
+#!/bin/sh
+
+dir="testdata/rotate"
+
+cleanup()
+{
+  rm -r "$dir"
+}
+
+die()
+{
+  echo "fatal: $1" 1>&2
+  cleanup
+  exit 1
+}
+
+makedir()
+{
+  echo "mkdir $1"
+  mkdir "$1" || die "could not create $1"
+}
+
+create()
+{
+  echo "create $dir/$1 $2"
+  ./create "$dir/$1" "$2" || die "could not create $dir/$1"
+}
+
+exists()
+{
+  if [ ! -f "$dir/$1" ]; then die "$dir/$1 does not exist"; fi
+}
+
+nonexistent()
+{
+  if [ -f "$dir/$1" ]; then die "$dir/$1 exists"; fi
+}
+
+makedir "$dir"
+
+create "@0" 1000
+create "@1" 900
+create "@2" 800
+create "@3" 700
+create "@4" 600
+create "current" 0
+
+./rotate 5 0 "$dir" || die "rotate failed"
+
+nonexistent "current"
+
+exists "@0"
+exists "@1"
+exists "@2"
+exists "@3"
+exists "@4"
+
+cleanup

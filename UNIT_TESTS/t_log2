@@ -1,0 +1,29 @@
+#!/bin/sh
+
+dir="testdata/log"
+
+cleanup()
+{
+  rm -r "$dir"
+}
+
+die()
+{
+  echo "fatal: $1" 1>&2
+  cleanup
+  exit 1
+}
+
+makedir()
+{
+  echo "mkdir $1"
+  mkdir "$1" || die "could not create $1"
+}
+
+makedir "$dir"
+
+./write 4096 "a" | ./log "$dir" 8 4096
+
+exit 0
+
+cleanup

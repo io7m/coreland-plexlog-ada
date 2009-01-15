@@ -22,10 +22,22 @@ try_v()
   return 1
 }
 
-SYS_ADA=`head -n 1 conf-adacomp`
+#
+# check if base directory was specified
+#
+
+BASE_DIR="."
+echo "$1" | grep '^@' 2>&1 >/dev/null
+if [ $? -eq 0 ]
+then
+  BASE_DIR=`echo $1 | sed 's/^@//g'`
+  shift
+fi
+
+SYS_ADA=`head -n 1 ${BASE_DIR}/conf-adacomp`
 if [ $? -ne 0 ]
 then
-  fatal "could not read conf-adacomp"
+  fatal "could not read ${BASE_DIR}/conf-adacomp"
 fi
 
 # try V output

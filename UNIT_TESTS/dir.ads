@@ -1,11 +1,11 @@
 package dir is
 
   procedure mkdir
-    (name : string;
-     mode : natural);
-  pragma inline (mkdir);
+    (name : in string;
+     mode : in natural);
+  pragma Inline (mkdir);
 
-  procedure rmdir (name : string);
-  pragma inline (rmdir);
+  procedure rmdir (name : in string);
+  pragma Inline (rmdir);
 
 end dir;

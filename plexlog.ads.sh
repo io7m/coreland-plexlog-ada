@@ -13,7 +13,7 @@ then
 fi
 
 cat <<EOF
-with interfaces.c;
+with Interfaces.C;
 
 package plexlog is
 
@@ -25,7 +25,7 @@ package plexlog is
      LOG_WARN,
      LOG_ERROR,
      LOG_FATAL);
-   for level_t use
+  for level_t use
     (LOG_NONE   => 0,
      LOG_DEBUG  => 1,
      LOG_INFO   => 2,
@@ -46,39 +46,39 @@ package plexlog is
 
   procedure open
     (context   : in out plexlog_t;
-     directory : string);
-  pragma inline (open);
+     directory : in string);
+  pragma Inline (open);
 
   procedure max_files
     (context   : in out plexlog_t;
-     max_files : natural);
-  pragma inline (max_files);
+     max_files : in natural);
+  pragma Inline (max_files);
 
   procedure max_filesize
     (context      : in out plexlog_t;
-     max_filesize : natural);
-  pragma inline (max_filesize);
+     max_filesize : in natural);
+  pragma Inline (max_filesize);
 
   procedure write
     (context : in out plexlog_t;
-     level   : level_t;
-     data    : string);
-  pragma inline (write);
+     level   : in level_t;
+     data    : in string);
+  pragma Inline (write);
 
   procedure rotate
     (context : in out plexlog_t);
-  pragma inline (rotate);
+  pragma Inline (rotate);
 
   procedure close
     (context : in out plexlog_t);
-  pragma inline (close);
+  pragma Inline (close);
 
 private
-  package c renames interfaces.c;
+  package C renames Interfaces.C;
 
   -- sizeof (struct plexlog) == ${main_size}
-  type plexlog_t is array (1 .. ${main_size}) of aliased c.char;
-  pragma convention (c, plexlog_t);
+  type plexlog_t is array (1 .. ${main_size}) of aliased C.char;
+  pragma Convention (C, plexlog_t);
 
 end plexlog;
 EOF

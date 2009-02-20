@@ -3,5 +3,4 @@ t_init2.ali
 ../plexlog-posix.ali
 ../plexlog-api.ali
 ../plexlog-ada.a
-dir.ali
 test.ali

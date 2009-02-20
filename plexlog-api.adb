@@ -39,29 +39,6 @@ package body Plexlog.API is
   end Have_Directory_Lock;
 
   --
-  -- Relinquish write lock.
-  --
-
-  procedure Unlock_Directory (Context : in out Plexlog_t) is
-    pragma Assert (Have_Directory_Lock (Context));
-  begin
-    Dir_Stack.Pop (Context.Dir_Stack);
-
-    if not POSIX.FD_Write_Unlock (Context.Lock_FD) then
-      raise Lock_Error with "could not unlock file";
-    end if;
-
-    if not POSIX.Close (Context.Lock_FD) then
-      raise Lock_Error with "could not close lock descriptor";
-    end if;
-
-    Context.Lock_FD := POSIX.Invalid_FD;
-  exception
-    when Dir_Stack.Pop_Error =>
-      raise Lock_Error with "could not remove old directory descriptor";
-  end Unlock_Directory;
-
-  --
   -- Acquire write lock.
   --
 
@@ -82,12 +59,37 @@ package body Plexlog.API is
     when Dir_Stack.Push_Error =>
       raise Lock_Error with "could not switch to log directory";
     when Lock_Error =>
-      Unlock_Directory (Context);
+      POSIX.Close (Context.Lock_FD);
+      Dir_Stack.Pop (Context.Dir_Stack);
       raise;
   end Lock_Directory;
 
   --
-  -- Remove oldest log files.
+  -- Relinquish write lock.
+  --
+
+  procedure Unlock_Directory (Context : in out Plexlog_t) is
+    pragma Assert (Have_Directory_Lock (Context));
+    pragma Assert (Dir_Stack.Size (Context.Dir_Stack) > 0);
+  begin
+    Dir_Stack.Pop (Context.Dir_Stack);
+
+    if not POSIX.FD_Write_Unlock (Context.Lock_FD) then
+      raise Lock_Error with "could not unlock file";
+    end if;
+
+    if not POSIX.Close (Context.Lock_FD) then
+      raise Lock_Error with "could not close lock descriptor";
+    end if;
+
+    Context.Lock_FD := POSIX.Invalid_FD;
+  exception
+    when Dir_Stack.Pop_Error =>
+      raise Lock_Error with "could not remove old directory descriptor";
+  end Unlock_Directory;
+
+  --
+  -- File information type.
   --
 
   type Log_File_t (Length : Positive) is record
@@ -111,9 +113,14 @@ package body Plexlog.API is
   package Log_File_Vectors_Sorting is new
     Log_File_Vectors.Generic_Sorting (Log_File_Compare);
 
+  --
+  -- Remove oldest log files.
+  --
+
   procedure Rotate_Remove_Old (Context : in Plexlog_t) is
     pragma Assert (Have_Directory_Lock (Context));
     pragma Assert (not Stream_IO.Is_Open (Context.Log_File));
+    pragma Assert (Context.Files_Max > 0);
 
     Log_List : Log_File_Vectors.Vector;
 
@@ -156,11 +163,11 @@ package body Plexlog.API is
 
     -- Select and remove all log files over Files_Max
     declare
-      Index_Start : constant Natural := Context.Files_Max;
-      Index_End   : constant Natural := Natural (Log_File_Vectors.Length (Log_List));
+      Num_Files : constant Natural := Natural (Log_File_Vectors.Length (Log_List));
+      Max_Files : constant Natural := Context.Files_Max - 1; -- ignore 'current'
     begin
-      if Index_End > Index_Start then
-        for Index in Index_Start .. Index_End loop
+      if Num_Files >= Max_Files then
+        for Index in Max_Files .. Num_Files - 1 loop
           Log_File_Vectors.Query_Element
             (Container => Log_List,
              Index     => Index,
@@ -169,6 +176,36 @@ package body Plexlog.API is
       end if;
     end;
   end Rotate_Remove_Old;
+
+  --
+  -- Remove old log files and rename current to a timestamp
+  --
+
+  procedure Rotate
+    (Context : in out Plexlog_t)
+  is
+    pragma Assert (Have_Directory_Lock (Context));
+    pragma Assert (not Stream_IO.Is_Open (Context.Log_File));
+
+    TAIA       : chrono.TAIA.TAIA_t;
+    TAIA_Label : chrono.TAIA.Label_TAI64N_t;
+  begin
+    chrono.TAIA.Now (TAIA);
+    chrono.TAIA.Label_TAI64N (TAIA, TAIA_Label);
+
+    -- Remove old log files if number of files is limited.
+    if Context.Files_Max > 0 then
+      Rotate_Remove_Old (Context);
+    end if;
+
+    Rename_Current : declare
+      Label_String : constant string := "@" & string (TAIA_Label);
+    begin
+      if not POSIX.Rename ("current", "@" & string (TAIA_Label)) then
+        raise Rotate_Error with "could not rename current to " & Label_String;
+      end if;
+    end Rename_Current;
+  end Rotate;
 
   --
   -- Character -> NN base16.
@@ -268,6 +305,7 @@ package body Plexlog.API is
   Log_Warn_String   : aliased constant String := "warn";
   Log_Error_String  : aliased constant String := "error";
   Log_Fatal_String  : aliased constant String := "fatal";
+  Log_Audit_String  : aliased constant String := "audit";
 
   Level_Strings : constant array (Level_t range <>) of String_Access_t :=
     (Log_None   => Log_None_String'Access,
@@ -276,7 +314,8 @@ package body Plexlog.API is
      Log_Notice => Log_Notice_String'Access,
      Log_Warn   => Log_Warn_String'Access,
      Log_Error  => Log_Error_String'Access,
-     Log_Fatal  => Log_Fatal_String'Access);
+     Log_Fatal  => Log_Fatal_String'Access,
+     Log_Audit  => Log_Audit_String'Access);
 
   function Level_String
     (Level : in Level_t) return String is
@@ -439,6 +478,7 @@ package body Plexlog.API is
      Data         : in String)
   is
     pragma Assert (Have_Directory_Lock (Context));
+    pragma Assert (Stream_IO.Is_Open (Context.Log_File));
 
     Max_Length      : constant Natural := Natural (Context.Size_Max) - Message_Minimum_Length;
     Filtered_Length : Natural := Filtered_Message_Length (Data);
@@ -446,20 +486,28 @@ package body Plexlog.API is
   begin
     -- Message cannot fit completely within remaining space.
     if not Log_Has_Space_For (Context, Filtered_Length) then
+
+      -- Current log file requires rotation?
       if not Log_Is_Empty (Context) then
+        Stream_IO.Close (Context.Log_File);
         Rotate (Context);
         Open_Current (Context);
       end if;
 
       -- Split message across as many log files as is required.
-      loop exit when Log_Has_Space_For (Context, Filtered_Length);
+      Write_Loop : loop
 
+        -- Message will fit in log file without splitting?
+        exit Write_Loop when Log_Has_Space_For (Context, Filtered_Length);
+
+        -- Write line prefix.
         Write_Line_Prefix
           (Context      => Context,
            Level_String => Level_String,
            PID_String   => PID_String,
            TAIA_Label   => TAIA_Label);
 
+        -- Write as much data as current log file limit allows.
         declare
           Status : Log_Status_t;
         begin
@@ -473,20 +521,27 @@ package body Plexlog.API is
             (Data (Data'First + Current_Offset .. Data'Last));
         end;
 
+        -- Close current log file.
+        Stream_IO.Close (Context.Log_File);
+
         -- Create new log file.
         Rotate (Context);
         Open_Current (Context);
-      end loop;
+
+      end loop Write_Loop;
     end if;
 
     -- Write remaining data, if any.
     if Data (Data'First + Current_Offset .. Data'Last)'Length > 0 then
+
+      -- Write line prefix.
       Write_Line_Prefix
         (Context      => Context,
          Level_String => Level_String,
          PID_String   => PID_String,
          TAIA_Label   => TAIA_Label);
 
+      -- Write message, no splitting.
       declare
         Status : Log_Status_t;
       begin
@@ -496,11 +551,6 @@ package body Plexlog.API is
            Status  => Status);
       end;
     end if;
-
-  exception
-    when others =>
-      Stream_IO.Close (Context.Log_File);
-      raise;
   end Write_With_Rotate;
 
   --
@@ -512,6 +562,7 @@ package body Plexlog.API is
      Path    : in String)
   is
     pragma Assert (not Have_Directory_Lock (Context));
+    pragma Assert (not Stream_IO.Is_Open (Context.Log_File));
   begin
     Context.Log_Dir_FD := POSIX.Open_Read (Path);
     if Context.Log_Dir_FD = POSIX.Invalid_FD then
@@ -519,19 +570,19 @@ package body Plexlog.API is
     end if;
   end Open;
 
-  procedure Set_Maximum_Files
+  procedure Set_Maximum_Saved_Files
     (Context   : in out Plexlog_t;
      Max_Files : in Natural) is
   begin
     Context.Files_Max := Max_Files;
-  end Set_Maximum_Files;
+  end Set_Maximum_Saved_Files;
 
   procedure Set_Maximum_File_Size
     (Context       : in out Plexlog_t;
      Max_File_Size : in File_Size_t) is
   begin
     Context.Size_Max     := Max_File_Size;
-    Context.Size_Limited := false;
+    Context.Size_Limited := true;
   end Set_Maximum_File_Size;
 
   procedure Set_Unlimited_File_Size
@@ -542,8 +593,8 @@ package body Plexlog.API is
 
   procedure Write
     (Context : in out Plexlog_t;
-     Level   : in Level_t;
-     Data    : in String)
+     Data    : in String;
+     Level   : in Level_t := Log_None)
   is
     pragma Assert (not Have_Directory_Lock (Context));
     pragma Assert (not Stream_IO.Is_Open (Context.Log_File));
@@ -590,32 +641,11 @@ package body Plexlog.API is
   exception
     when others =>
       pragma Assert (not Stream_IO.Is_Open (Context.Log_File));
-      Unlock_Directory (Context);
+      if Have_Directory_Lock (Context) then
+        Unlock_Directory (Context);
+      end if;
       raise;
   end Write;
-
-  procedure Rotate
-    (Context : in out Plexlog_t)
-  is
-    pragma Assert (Have_Directory_Lock (Context));
-    pragma Assert (not Stream_IO.Is_Open (Context.Log_File));
-
-    TAIA       : chrono.TAIA.TAIA_t;
-    TAIA_Label : chrono.TAIA.Label_TAI64N_t;
-  begin
-    chrono.TAIA.Now (TAIA);
-    chrono.TAIA.Label_TAI64N (TAIA, TAIA_Label);
-
-    Rotate_Remove_Old (Context);
-
-    declare
-      Label_String : constant string := "@" & string (TAIA_Label);
-    begin
-      if not POSIX.Rename ("current", "@" & string (TAIA_Label)) then
-        raise Rotate_Error with "could not rename current to " & Label_String;
-      end if;
-    end;
-  end Rotate;
 
   procedure Close
     (Context : in out Plexlog_t) is
@@ -627,5 +657,12 @@ package body Plexlog.API is
       POSIX.Close (Context.Lock_FD);
     end if;
   end Close;
+
+  function Space_Requirement
+    (Max_Files : in Long_Positive;
+     Max_Size  : in Long_Positive) return Long_Positive is
+  begin
+    return (Max_Files * Max_Size) + Max_Size;
+  end Space_Requirement;
 
 end Plexlog.API;

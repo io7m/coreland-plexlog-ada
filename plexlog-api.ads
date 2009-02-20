@@ -17,14 +17,16 @@ package Plexlog.API is
      Log_Notice,
      Log_Warn,
      Log_Error,
-     Log_Fatal);
+     Log_Fatal,
+     Log_Audit);
 
-  Size_Default  : constant := 99999;
-  Size_Min      : constant := 4096;
+  Size_Default  : constant := 1024 * 1024;
+  Size_Min      : constant := 50;
   Files_Default : constant := 10;
 
   type Plexlog_t is limited private;
-  type File_Size_t is range Size_Min .. Long_Integer'Last;
+
+  subtype File_Size_t is Long_Integer range Size_Min .. Long_Integer'Last;
 
   Close_Error  : exception;
   Lock_Error   : exception;
@@ -34,9 +36,9 @@ package Plexlog.API is
 
   procedure Open
     (Context : in out Plexlog_t;
-     Path    : in string);
+     Path    : in String);
 
-  procedure Set_Maximum_Files
+  procedure Set_Maximum_Saved_Files
     (Context   : in out Plexlog_t;
      Max_Files : in Natural);
 
@@ -49,14 +51,17 @@ package Plexlog.API is
 
   procedure Write
     (Context : in out Plexlog_t;
-     Level   : in Level_t;
-     Data    : in string);
-
-  procedure Rotate
-    (Context : in out Plexlog_t);
+     Data    : in String;
+     Level   : in Level_t := Log_None);
 
   procedure Close
     (Context : in out Plexlog_t);
+
+  subtype Long_Positive is Long_Integer range 1 .. Long_Integer'Last;
+
+  function Space_Requirement
+    (Max_Files : in Long_Positive;
+     Max_Size  : in Long_Positive) return Long_Positive;
 
 private
   package POSIX renames Plexlog.POSIX;

@@ -1,31 +1,32 @@
-with dir;
+with Ada.Directories;
 with Plexlog.API;
 with test;
 
 procedure t_init1 is
+  package Directories renames Ada.Directories;
 
-  open_ok  : boolean := true;
-  close_ok : boolean := true;
+  Open_OK  : boolean := true;
+  Close_OK : boolean := true;
   context  : Plexlog.API.Plexlog_t;
 
 begin
-  dir.rmdir ("testdata/init");
-  dir.mkdir ("testdata/init", 8#0755#);
+  Directories.Delete_Tree ("testdata/init");
+  Directories.Create_Path ("testdata/init");
 
   begin
     Plexlog.API.Open (context, "testdata/init");
     Plexlog.API.Close (context);
   exception
-    when Plexlog.API.Open_Error => open_ok := false;
-    when Plexlog.API.Close_Error => close_ok := false;
+    when Plexlog.API.Open_Error => Open_OK := false;
+    when Plexlog.API.Close_Error => Close_OK := false;
   end;
 
   test.assert
-    (check        => open_ok,
+    (check        => Open_OK,
      pass_message => "open ok",
      fail_message => "open failed");
   test.assert
-    (check        => close_ok,
+    (check        => Close_OK,
      pass_message => "close ok",
      fail_message => "close failed");
 

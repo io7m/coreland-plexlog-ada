@@ -14,6 +14,10 @@ pragma source_file_name(Plexlog.POSIX, body_file_name => "plexlog-posix.adb");
 -- ./plexlog.apk
 pragma source_file_name(Plexlog, spec_file_name => "plexlog.ads");
 
--- UNIT_TESTS/dir.apk
-pragma source_file_name(dir, spec_file_name => "dir.ads");
-pragma source_file_name(dir, body_file_name => "dir.adb");
+-- UNIT_TESTS/getline.apk
+pragma source_file_name(getline, spec_file_name => "getline.ads");
+pragma source_file_name(getline, body_file_name => "getline.adb");
+
+-- UNIT_TESTS/test.apk
+pragma source_file_name(test, spec_file_name => "test.ads");
+pragma source_file_name(test, body_file_name => "test.adb");

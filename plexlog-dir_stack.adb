@@ -57,7 +57,8 @@ package body Plexlog.Dir_Stack is
       raise Pop_Error with "could not restore directory";
     end if;
 
-    Stack.Index := Stack.Index - 1;
+    Stack.FD_Array (Stack.Index) := POSIX.Invalid_FD;
+    Stack.Index                  := Stack.Index - 1;
 
     if not POSIX.Close (Old_FD) then
       raise Pop_Error with "could not close old directory";

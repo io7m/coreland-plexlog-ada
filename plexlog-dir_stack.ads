@@ -29,7 +29,7 @@ package Plexlog.Dir_Stack is
 private
   package POSIX renames Plexlog.POSIX;
 
-  type FD_Array_Count_t is range 0 .. 4;
+  type FD_Array_Count_t is range 0 .. 2;
   subtype FD_Array_Index_t is FD_Array_Count_t range 1 .. FD_Array_Count_t'Last;
   type FD_Array_t is array (FD_Array_Index_t) of POSIX.FD_t;
 

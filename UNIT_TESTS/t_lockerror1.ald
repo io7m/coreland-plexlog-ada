@@ -1,4 +1,4 @@
-t_init1.ali
+t_lockerror1.ali
 ../plexlog.ali
 ../plexlog-posix.ali
 ../plexlog-api.ali

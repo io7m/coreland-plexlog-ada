@@ -33,13 +33,25 @@ nonexistent()
 log()
 {
   echo "log $1 $2"
-  ./lines "$1" "$2" | ./log "$dir" 0 4096 || die "could not write log"
+  ./lines "$1" "$2" | ./log "$dir" 0 32768 || die "could not write log"
 }
 
 check_num()
 {
   val=`grep "$1" "$dir"/* | wc -l`
   if [ $val -ne $2 ]; then die "expected $2 written lines of $1, got $val"; fi
+}
+
+check_count()
+{
+  val="$1"
+
+  saved=`ls "$dir" | grep '^@' | wc -l`
+
+  if [ $val -ne $saved ]
+  then
+    die "expected $val files, got $saved"
+  fi
 }
 
 cleanup
@@ -56,5 +68,7 @@ check_num "CCCC" 4096
 check_num "DDDD" 4096
 
 exists "current"
+
+check_count 21
 
 cleanup

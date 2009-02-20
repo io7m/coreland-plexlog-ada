@@ -33,10 +33,9 @@ package Plexlog.POSIX is
 
   type Error_t is new Interfaces.C.int;
   type FD_t is new Interfaces.C.int;
+  type PID_t is new Interfaces.C.int;
 
   Invalid_FD : constant FD_t := -1;
-
-  type PID_t is new Interfaces.C.int;
 
   function Open_Read (Path : in string) return FD_t;
   pragma Inline (Open_Read);

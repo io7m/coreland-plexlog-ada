@@ -1,0 +1,7 @@
+t_space.ali
+test.ali
+../plexlog.ali
+../plexlog-api.ali
+../plexlog-dir_stack.ali
+../plexlog-posix.ali
+../plexlog-ada.a

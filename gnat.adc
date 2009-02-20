@@ -1,7 +1,18 @@
 
+-- ./plexlog-api.apk
+pragma source_file_name(Plexlog.API, spec_file_name => "plexlog-api.ads");
+pragma source_file_name(Plexlog.API, body_file_name => "plexlog-api.adb");
+
+-- ./plexlog-dir_stack.apk
+pragma source_file_name(Plexlog.Dir_Stack, spec_file_name => "plexlog-dir_stack.ads");
+pragma source_file_name(Plexlog.Dir_Stack, body_file_name => "plexlog-dir_stack.adb");
+
+-- ./plexlog-posix.apk
+pragma source_file_name(Plexlog.POSIX, spec_file_name => "plexlog-posix.ads");
+pragma source_file_name(Plexlog.POSIX, body_file_name => "plexlog-posix.adb");
+
 -- ./plexlog.apk
-pragma source_file_name(plexlog, spec_file_name => "plexlog.ads");
-pragma source_file_name(plexlog, body_file_name => "plexlog.adb");
+pragma source_file_name(Plexlog, spec_file_name => "plexlog.ads");
 
 -- UNIT_TESTS/dir.apk
 pragma source_file_name(dir, spec_file_name => "dir.ads");

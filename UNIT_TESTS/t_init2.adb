@@ -1,14 +1,14 @@
-with plexlog;
+with Plexlog.API;
 with test;
 
 procedure t_init2 is
   open_ok  : boolean := true;
-  context  : plexlog.plexlog_t;
+  context  : Plexlog.API.Plexlog_t;
 begin
   begin
-    plexlog.open (context, "/nonexistent");
+    Plexlog.API.Open (context, "/nonexistent");
   exception
-    when plexlog.open_error => open_ok := false;
+    when Plexlog.API.Open_Error => open_ok := false;
   end;
 
   test.assert

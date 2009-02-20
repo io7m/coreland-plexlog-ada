@@ -1,4 +1,6 @@
 log.ali
 ../plexlog.ali
+../plexlog-posix.ali
+../plexlog-api.ali
 ../plexlog-ada.a
 getline.ali

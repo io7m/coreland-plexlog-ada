@@ -6,15 +6,17 @@ all:\
 UNIT_TESTS/create UNIT_TESTS/create.o UNIT_TESTS/dir.ali UNIT_TESTS/dir.o \
 UNIT_TESTS/getline.ali UNIT_TESTS/getline.o UNIT_TESTS/lines UNIT_TESTS/lines.o \
 UNIT_TESTS/log UNIT_TESTS/log.ali UNIT_TESTS/log.o UNIT_TESTS/rotate \
-UNIT_TESTS/rotate.o UNIT_TESTS/t_assert.o UNIT_TESTS/t_init1 \
+UNIT_TESTS/rotate.o UNIT_TESTS/t_assert.o UNIT_TESTS/t_dir1 \
+UNIT_TESTS/t_dir1.ali UNIT_TESTS/t_dir1.o UNIT_TESTS/t_init1 \
 UNIT_TESTS/t_init1.ali UNIT_TESTS/t_init1.o UNIT_TESTS/t_init2 \
 UNIT_TESTS/t_init2.ali UNIT_TESTS/t_init2.o UNIT_TESTS/test.a \
 UNIT_TESTS/test.ali UNIT_TESTS/test.o UNIT_TESTS/write UNIT_TESTS/write.o \
-chk-size chk-size.o ctxt/bindir.o ctxt/ctxt.a ctxt/dlibdir.o ctxt/incdir.o \
-ctxt/repos.o ctxt/slibdir.o ctxt/version.o deinstaller deinstaller.o \
-install-core.o install-error.o install-posix.o install-win32.o install.a \
-installer installer.o instchk instchk.o insthier.o make-types make-types.o \
-plexlog-ada.a plexlog.ali plexlog.o px_aux.o
+ctxt/bindir.o ctxt/ctxt.a ctxt/dlibdir.o ctxt/incdir.o ctxt/repos.o \
+ctxt/slibdir.o ctxt/version.o deinstaller deinstaller.o install-core.o \
+install-error.o install-posix.o install-win32.o install.a installer installer.o \
+instchk instchk.o insthier.o plexlog-ada.a plexlog-api.ali plexlog-api.o \
+plexlog-dir_stack.ali plexlog-dir_stack.o plexlog-posix.ali plexlog-posix.o \
+plexlog.ali plexlog.o plexlog_posix.o
 
 # Mkf-deinstall
 deinstall: deinstaller conf-sosuffix
@@ -41,6 +43,18 @@ tests_clean:
 	(cd UNIT_TESTS && make clean)
 
 # -- SYSDEPS start
+flags-c_string:
+	@echo SYSDEPS c_string-flags run create flags-c_string 
+	@(cd SYSDEPS/modules/c_string-flags && ./run)
+libs-c_string-S:
+	@echo SYSDEPS c_string-libs-S run create libs-c_string-S 
+	@(cd SYSDEPS/modules/c_string-libs-S && ./run)
+flags-chrono-ada:
+	@echo SYSDEPS chrono-ada-flags run create flags-chrono-ada 
+	@(cd SYSDEPS/modules/chrono-ada-flags && ./run)
+libs-chrono-ada-S:
+	@echo SYSDEPS chrono-ada-libs-S run create libs-chrono-ada-S 
+	@(cd SYSDEPS/modules/chrono-ada-libs-S && ./run)
 libs-chrono-S:
 	@echo SYSDEPS chrono-libs-S run create libs-chrono-S 
 	@(cd SYSDEPS/modules/chrono-libs-S && ./run)
@@ -58,6 +72,18 @@ libs-plexlog-S:
 	@(cd SYSDEPS/modules/plexlog-libs-S && ./run)
 
 
+c_string-flags_clean:
+	@echo SYSDEPS c_string-flags clean flags-c_string 
+	@(cd SYSDEPS/modules/c_string-flags && ./clean)
+c_string-libs-S_clean:
+	@echo SYSDEPS c_string-libs-S clean libs-c_string-S 
+	@(cd SYSDEPS/modules/c_string-libs-S && ./clean)
+chrono-ada-flags_clean:
+	@echo SYSDEPS chrono-ada-flags clean flags-chrono-ada 
+	@(cd SYSDEPS/modules/chrono-ada-flags && ./clean)
+chrono-ada-libs-S_clean:
+	@echo SYSDEPS chrono-ada-libs-S clean libs-chrono-ada-S 
+	@(cd SYSDEPS/modules/chrono-ada-libs-S && ./clean)
 chrono-libs-S_clean:
 	@echo SYSDEPS chrono-libs-S clean libs-chrono-S 
 	@(cd SYSDEPS/modules/chrono-libs-S && ./clean)
@@ -76,6 +102,10 @@ plexlog-libs-S_clean:
 
 
 sysdeps_clean:\
+c_string-flags_clean \
+c_string-libs-S_clean \
+chrono-ada-flags_clean \
+chrono-ada-libs-S_clean \
 chrono-libs-S_clean \
 corelib-libs-S_clean \
 integer-libs-S_clean \
@@ -118,12 +148,12 @@ cc-compile UNIT_TESTS/lines.c
 
 UNIT_TESTS/log:\
 ada-bind ada-link UNIT_TESTS/log.ald UNIT_TESTS/log.ali plexlog.ali \
-plexlog-ada.a UNIT_TESTS/getline.ali
+plexlog-posix.ali plexlog-api.ali plexlog-ada.a UNIT_TESTS/getline.ali
 	./ada-bind UNIT_TESTS/log.ali
 	./ada-link UNIT_TESTS/log UNIT_TESTS/log.ali plexlog-ada.a
 
 UNIT_TESTS/log.ali:\
-ada-compile UNIT_TESTS/log.adb plexlog.ads
+ada-compile UNIT_TESTS/log.adb plexlog-api.ali
 	./ada-compile UNIT_TESTS/log.adb
 
 UNIT_TESTS/log.o:\
@@ -141,14 +171,29 @@ UNIT_TESTS/t_assert.o:\
 cc-compile UNIT_TESTS/t_assert.c UNIT_TESTS/t_assert.h
 	./cc-compile UNIT_TESTS/t_assert.c
 
+UNIT_TESTS/t_dir1:\
+ada-bind ada-link UNIT_TESTS/t_dir1.ald UNIT_TESTS/t_dir1.ali \
+UNIT_TESTS/test.ali plexlog-dir_stack.ali plexlog-posix.ali plexlog.ali \
+plexlog-ada.a
+	./ada-bind UNIT_TESTS/t_dir1.ali
+	./ada-link UNIT_TESTS/t_dir1 UNIT_TESTS/t_dir1.ali plexlog-ada.a
+
+UNIT_TESTS/t_dir1.ali:\
+ada-compile UNIT_TESTS/t_dir1.adb plexlog-dir_stack.ali
+	./ada-compile UNIT_TESTS/t_dir1.adb
+
+UNIT_TESTS/t_dir1.o:\
+UNIT_TESTS/t_dir1.ali
+
 UNIT_TESTS/t_init1:\
 ada-bind ada-link UNIT_TESTS/t_init1.ald UNIT_TESTS/t_init1.ali plexlog.ali \
-plexlog-ada.a UNIT_TESTS/dir.ali UNIT_TESTS/test.ali
+plexlog-posix.ali plexlog-api.ali plexlog-ada.a UNIT_TESTS/dir.ali \
+UNIT_TESTS/test.ali
 	./ada-bind UNIT_TESTS/t_init1.ali
 	./ada-link UNIT_TESTS/t_init1 UNIT_TESTS/t_init1.ali plexlog-ada.a
 
 UNIT_TESTS/t_init1.ali:\
-ada-compile UNIT_TESTS/t_init1.adb UNIT_TESTS/dir.ads plexlog.ads
+ada-compile UNIT_TESTS/t_init1.adb UNIT_TESTS/dir.ali plexlog-api.ali
 	./ada-compile UNIT_TESTS/t_init1.adb
 
 UNIT_TESTS/t_init1.o:\
@@ -156,12 +201,13 @@ UNIT_TESTS/t_init1.ali
 
 UNIT_TESTS/t_init2:\
 ada-bind ada-link UNIT_TESTS/t_init2.ald UNIT_TESTS/t_init2.ali plexlog.ali \
-plexlog-ada.a UNIT_TESTS/dir.ali UNIT_TESTS/test.ali
+plexlog-posix.ali plexlog-api.ali plexlog-ada.a UNIT_TESTS/dir.ali \
+UNIT_TESTS/test.ali
 	./ada-bind UNIT_TESTS/t_init2.ali
 	./ada-link UNIT_TESTS/t_init2 UNIT_TESTS/t_init2.ali plexlog-ada.a
 
 UNIT_TESTS/t_init2.ali:\
-ada-compile UNIT_TESTS/t_init2.adb plexlog.ads
+ada-compile UNIT_TESTS/t_init2.adb plexlog-api.ali
 	./ada-compile UNIT_TESTS/t_init2.adb
 
 UNIT_TESTS/t_init2.o:\
@@ -187,15 +233,17 @@ cc-compile UNIT_TESTS/write.c
 	./cc-compile UNIT_TESTS/write.c
 
 ada-bind:\
-conf-adabind conf-systype conf-adatype conf-adafflist flags-cwd
+conf-adabind conf-systype conf-adatype conf-adabflags conf-adafflist \
+	flags-chrono-ada flags-c_string flags-cwd
 
 ada-compile:\
-conf-adacomp conf-adatype conf-systype conf-adacflags conf-adafflist flags-cwd
+conf-adacomp conf-adatype conf-systype conf-adacflags conf-adafflist \
+	flags-chrono-ada flags-c_string flags-cwd
 
 ada-link:\
 conf-adalink conf-adatype conf-systype conf-adaldflags conf-aldfflist \
-	libs-plexlog-S libs-chrono-S libs-chrono-C libs-corelib-S libs-corelib-C \
-	libs-integer-S libs-integer-C
+	libs-plexlog-S libs-chrono-ada-S libs-c_string-S libs-chrono-S libs-chrono-C \
+	libs-corelib-S libs-corelib-C libs-integer-S libs-integer-C
 
 ada-srcmap:\
 conf-adacomp conf-adatype conf-systype
@@ -214,24 +262,16 @@ conf-ld conf-ldtype conf-systype conf-ldflags conf-ldfflist libs-plexlog-S \
 cc-slib:\
 conf-systype
 
-chk-size:\
-cc-link chk-size.ld chk-size.o
-	./cc-link chk-size chk-size.o
-
-chk-size.o:\
-cc-compile chk-size.c
-	./cc-compile chk-size.c
-
 conf-adatype:\
 mk-adatype
 	./mk-adatype > conf-adatype.tmp && mv conf-adatype.tmp conf-adatype
 
 conf-cctype:\
-conf-cc mk-cctype
+conf-cc conf-cc mk-cctype
 	./mk-cctype > conf-cctype.tmp && mv conf-cctype.tmp conf-cctype
 
 conf-ldtype:\
-conf-ld mk-ldtype
+conf-ld conf-ld mk-ldtype
 	./mk-ldtype > conf-ldtype.tmp && mv conf-ldtype.tmp conf-ldtype
 
 conf-sosuffix:\
@@ -355,14 +395,6 @@ insthier.o:\
 cc-compile insthier.c ctxt.h install.h
 	./cc-compile insthier.c
 
-make-types:\
-cc-link make-types.ld make-types.o
-	./cc-link make-types make-types.o
-
-make-types.o:\
-cc-compile make-types.c
-	./cc-compile make-types.c
-
 mk-adatype:\
 conf-adacomp conf-systype
 
@@ -386,23 +418,49 @@ mk-systype:\
 conf-cc conf-ld
 
 plexlog-ada.a:\
-cc-slib plexlog-ada.sld plexlog.o px_aux.o
-	./cc-slib plexlog-ada plexlog.o px_aux.o
+cc-slib plexlog-ada.sld plexlog.o plexlog-api.o plexlog-posix.o plexlog_posix.o
+	./cc-slib plexlog-ada plexlog.o plexlog-api.o plexlog-posix.o plexlog_posix.o
 
-# plexlog.ads.mff
-plexlog.ads: plexlog.ads.sh chk-size make-types
-	./plexlog.ads.sh > plexlog.ads.tmp && mv plexlog.ads.tmp plexlog.ads
+plexlog-api.ads:\
+plexlog.ali plexlog-dir_stack.ali plexlog-posix.ali
+
+plexlog-api.ali:\
+ada-compile plexlog-api.adb plexlog.ali plexlog-api.ads
+	./ada-compile plexlog-api.adb
+
+plexlog-api.o:\
+plexlog-api.ali
+
+plexlog-dir_stack.ads:\
+plexlog-posix.ali
+
+plexlog-dir_stack.ali:\
+ada-compile plexlog-dir_stack.adb plexlog-dir_stack.ads
+	./ada-compile plexlog-dir_stack.adb
+
+plexlog-dir_stack.o:\
+plexlog-dir_stack.ali
+
+plexlog-posix.ads:\
+plexlog.ali
+
+plexlog-posix.ali:\
+ada-compile plexlog-posix.adb plexlog.ali plexlog-posix.ads
+	./ada-compile plexlog-posix.adb
+
+plexlog-posix.o:\
+plexlog-posix.ali
 
 plexlog.ali:\
-ada-compile plexlog.adb plexlog.ads
-	./ada-compile plexlog.adb
+ada-compile plexlog.ads plexlog.ads
+	./ada-compile plexlog.ads
 
 plexlog.o:\
 plexlog.ali
 
-px_aux.o:\
-cc-compile px_aux.c
-	./cc-compile px_aux.c
+plexlog_posix.o:\
+cc-compile plexlog_posix.c
+	./cc-compile plexlog_posix.c
 
 clean-all: sysdeps_clean tests_clean obj_clean ext_clean
 clean: obj_clean
@@ -410,16 +468,18 @@ obj_clean:
 	rm -f UNIT_TESTS/create UNIT_TESTS/create.o UNIT_TESTS/dir.ali UNIT_TESTS/dir.o \
 	UNIT_TESTS/getline.ali UNIT_TESTS/getline.o UNIT_TESTS/lines UNIT_TESTS/lines.o \
 	UNIT_TESTS/log UNIT_TESTS/log.ali UNIT_TESTS/log.o UNIT_TESTS/rotate \
-	UNIT_TESTS/rotate.o UNIT_TESTS/t_assert.o UNIT_TESTS/t_init1 \
+	UNIT_TESTS/rotate.o UNIT_TESTS/t_assert.o UNIT_TESTS/t_dir1 \
+	UNIT_TESTS/t_dir1.ali UNIT_TESTS/t_dir1.o UNIT_TESTS/t_init1 \
 	UNIT_TESTS/t_init1.ali UNIT_TESTS/t_init1.o UNIT_TESTS/t_init2 \
 	UNIT_TESTS/t_init2.ali UNIT_TESTS/t_init2.o UNIT_TESTS/test.a \
 	UNIT_TESTS/test.ali UNIT_TESTS/test.o UNIT_TESTS/write UNIT_TESTS/write.o \
-	chk-size chk-size.o ctxt/bindir.c ctxt/bindir.o ctxt/ctxt.a ctxt/dlibdir.c \
-	ctxt/dlibdir.o ctxt/incdir.c ctxt/incdir.o ctxt/repos.c ctxt/repos.o \
-	ctxt/slibdir.c ctxt/slibdir.o ctxt/version.c ctxt/version.o deinstaller \
-	deinstaller.o install-core.o install-error.o install-posix.o install-win32.o \
-	install.a installer installer.o instchk instchk.o insthier.o make-types \
-	make-types.o plexlog-ada.a plexlog.ads plexlog.ali plexlog.o px_aux.o
+	ctxt/bindir.c ctxt/bindir.o ctxt/ctxt.a ctxt/dlibdir.c ctxt/dlibdir.o \
+	ctxt/incdir.c ctxt/incdir.o ctxt/repos.c ctxt/repos.o ctxt/slibdir.c \
+	ctxt/slibdir.o ctxt/version.c ctxt/version.o deinstaller deinstaller.o \
+	install-core.o install-error.o install-posix.o install-win32.o install.a \
+	installer installer.o instchk instchk.o insthier.o plexlog-ada.a \
+	plexlog-api.ali plexlog-api.o plexlog-dir_stack.ali plexlog-dir_stack.o \
+	plexlog-posix.ali plexlog-posix.o plexlog.ali plexlog.o plexlog_posix.o
 ext_clean:
 	rm -f conf-adatype conf-cctype conf-ldtype conf-sosuffix conf-systype mk-ctxt
 

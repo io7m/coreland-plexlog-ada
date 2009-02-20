@@ -1,2 +1,0 @@
-plexlog.ads: plexlog.ads.sh chk-size make-types
-	./plexlog.ads.sh > plexlog.ads.tmp && mv plexlog.ads.tmp plexlog.ads

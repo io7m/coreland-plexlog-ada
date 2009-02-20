@@ -3,16 +3,16 @@ with Ada.IO_Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with getline;
-with plexlog;
+with Plexlog.API;
 
 procedure log is
   package IO renames Ada.Text_IO;
   package UStrings renames Ada.Strings.Unbounded;
 
   max_files : natural;
-  max_size  : natural;
+  max_size  : Plexlog.API.File_Size_t;
   line      : UStrings.Unbounded_String;
-  context   : plexlog.plexlog_t;
+  context   : Plexlog.API.Plexlog_t;
 
 begin
   if Ada.Command_Line.Argument_Count /= 3 then
@@ -21,16 +21,16 @@ begin
   end if;
 
   max_files := natural'Value (Ada.Command_Line.Argument (2));
-  max_size  := natural'Value (Ada.Command_Line.Argument (3));
+  max_size  := Plexlog.API.File_Size_t'Value (Ada.Command_Line.Argument (3));
 
-  plexlog.open (context, Ada.Command_Line.Argument (1));
-  plexlog.max_files (context, max_files);
-  plexlog.max_filesize (context, max_size);
+  Plexlog.API.Open (context, Ada.Command_Line.Argument (1));
+  Plexlog.API.Set_Maximum_Files (context, max_files);
+  Plexlog.API.Set_Maximum_File_Size (context, max_size);
 
   begin
     loop
       getline.get (IO.Current_Input, line);
-      plexlog.write (context, plexlog.LOG_INFO, UStrings.To_String (line));
+      Plexlog.API.Write (context, Plexlog.API.Log_Info, UStrings.To_String (line));
       UStrings.Set_Unbounded_String (line, "");
     end loop;
   exception

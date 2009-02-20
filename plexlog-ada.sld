@@ -1,2 +1,4 @@
 plexlog.o
-px_aux.o
+plexlog-api.o
+plexlog-posix.o
+plexlog_posix.o

@@ -1,5 +1,7 @@
 t_init1.ali
 ../plexlog.ali
+../plexlog-posix.ali
+../plexlog-api.ali
 ../plexlog-ada.a
 dir.ali
 test.ali

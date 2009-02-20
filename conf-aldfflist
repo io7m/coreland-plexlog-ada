@@ -1,4 +1,6 @@
 libs-plexlog-S
+libs-chrono-ada-S
+libs-c_string-S
 libs-chrono-S
 libs-chrono-C
 libs-corelib-S

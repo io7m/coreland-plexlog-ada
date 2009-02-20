@@ -5,21 +5,20 @@ default: all
 all:\
 UNIT_TESTS/create UNIT_TESTS/create.o UNIT_TESTS/getline.ali \
 UNIT_TESTS/getline.o UNIT_TESTS/lines UNIT_TESTS/lines.o UNIT_TESTS/log \
-UNIT_TESTS/log.ali UNIT_TESTS/log.o UNIT_TESTS/rotate UNIT_TESTS/rotate.o \
-UNIT_TESTS/t_assert.o UNIT_TESTS/t_dir1 UNIT_TESTS/t_dir1.ali \
-UNIT_TESTS/t_dir1.o UNIT_TESTS/t_init1 UNIT_TESTS/t_init1.ali \
-UNIT_TESTS/t_init1.o UNIT_TESTS/t_init2 UNIT_TESTS/t_init2.ali \
-UNIT_TESTS/t_init2.o UNIT_TESTS/t_lockerror1 UNIT_TESTS/t_lockerror1.ali \
-UNIT_TESTS/t_lockerror1.o UNIT_TESTS/t_open1 UNIT_TESTS/t_open1.ali \
-UNIT_TESTS/t_open1.o UNIT_TESTS/t_space UNIT_TESTS/t_space.ali \
-UNIT_TESTS/t_space.o UNIT_TESTS/test.a UNIT_TESTS/test.ali UNIT_TESTS/test.o \
-UNIT_TESTS/write UNIT_TESTS/write.o ctxt/bindir.o ctxt/ctxt.a ctxt/dlibdir.o \
-ctxt/incdir.o ctxt/repos.o ctxt/slibdir.o ctxt/version.o deinstaller \
-deinstaller.o install-core.o install-error.o install-posix.o install-win32.o \
-install.a installer installer.o instchk instchk.o insthier.o plexlog-ada-conf \
-plexlog-ada-conf.o plexlog-ada.a plexlog-api.ali plexlog-api.o \
-plexlog-dir_stack.ali plexlog-dir_stack.o plexlog-posix.ali plexlog-posix.o \
-plexlog.ali plexlog.o plexlog_posix.o
+UNIT_TESTS/log.ali UNIT_TESTS/log.o UNIT_TESTS/t_assert.o UNIT_TESTS/t_dir1 \
+UNIT_TESTS/t_dir1.ali UNIT_TESTS/t_dir1.o UNIT_TESTS/t_init1 \
+UNIT_TESTS/t_init1.ali UNIT_TESTS/t_init1.o UNIT_TESTS/t_init2 \
+UNIT_TESTS/t_init2.ali UNIT_TESTS/t_init2.o UNIT_TESTS/t_lockerror1 \
+UNIT_TESTS/t_lockerror1.ali UNIT_TESTS/t_lockerror1.o UNIT_TESTS/t_open1 \
+UNIT_TESTS/t_open1.ali UNIT_TESTS/t_open1.o UNIT_TESTS/t_space \
+UNIT_TESTS/t_space.ali UNIT_TESTS/t_space.o UNIT_TESTS/test.a \
+UNIT_TESTS/test.ali UNIT_TESTS/test.o UNIT_TESTS/write UNIT_TESTS/write.o \
+ctxt/bindir.o ctxt/ctxt.a ctxt/dlibdir.o ctxt/incdir.o ctxt/repos.o \
+ctxt/slibdir.o ctxt/version.o deinstaller deinstaller.o install-core.o \
+install-error.o install-posix.o install-win32.o install.a installer installer.o \
+instchk instchk.o insthier.o plexlog-ada-conf plexlog-ada-conf.o plexlog-ada.a \
+plexlog-api.ali plexlog-api.o plexlog-dir_stack.ali plexlog-dir_stack.o \
+plexlog-posix.ali plexlog-posix.o plexlog.ali plexlog.o plexlog_posix.o
 
 # Mkf-deinstall
 deinstall: deinstaller conf-sosuffix
@@ -147,14 +146,6 @@ ada-compile UNIT_TESTS/log.adb UNIT_TESTS/getline.ali plexlog-api.ali
 
 UNIT_TESTS/log.o:\
 UNIT_TESTS/log.ali
-
-UNIT_TESTS/rotate:\
-cc-link UNIT_TESTS/rotate.ld UNIT_TESTS/rotate.o
-	./cc-link UNIT_TESTS/rotate UNIT_TESTS/rotate.o
-
-UNIT_TESTS/rotate.o:\
-cc-compile UNIT_TESTS/rotate.c
-	./cc-compile UNIT_TESTS/rotate.c
 
 UNIT_TESTS/t_assert.o:\
 cc-compile UNIT_TESTS/t_assert.c UNIT_TESTS/t_assert.h
@@ -503,23 +494,22 @@ clean: obj_clean
 obj_clean:
 	rm -f UNIT_TESTS/create UNIT_TESTS/create.o UNIT_TESTS/getline.ali \
 	UNIT_TESTS/getline.o UNIT_TESTS/lines UNIT_TESTS/lines.o UNIT_TESTS/log \
-	UNIT_TESTS/log.ali UNIT_TESTS/log.o UNIT_TESTS/rotate UNIT_TESTS/rotate.o \
-	UNIT_TESTS/t_assert.o UNIT_TESTS/t_dir1 UNIT_TESTS/t_dir1.ali \
-	UNIT_TESTS/t_dir1.o UNIT_TESTS/t_init1 UNIT_TESTS/t_init1.ali \
-	UNIT_TESTS/t_init1.o UNIT_TESTS/t_init2 UNIT_TESTS/t_init2.ali \
-	UNIT_TESTS/t_init2.o UNIT_TESTS/t_lockerror1 UNIT_TESTS/t_lockerror1.ali \
-	UNIT_TESTS/t_lockerror1.o UNIT_TESTS/t_open1 UNIT_TESTS/t_open1.ali \
-	UNIT_TESTS/t_open1.o UNIT_TESTS/t_space UNIT_TESTS/t_space.ali \
-	UNIT_TESTS/t_space.o UNIT_TESTS/test.a UNIT_TESTS/test.ali UNIT_TESTS/test.o \
-	UNIT_TESTS/write UNIT_TESTS/write.o ctxt/bindir.c ctxt/bindir.o ctxt/ctxt.a \
-	ctxt/dlibdir.c ctxt/dlibdir.o ctxt/incdir.c ctxt/incdir.o ctxt/repos.c \
-	ctxt/repos.o ctxt/slibdir.c ctxt/slibdir.o ctxt/version.c ctxt/version.o \
-	deinstaller deinstaller.o install-core.o install-error.o install-posix.o \
-	install-win32.o install.a installer installer.o instchk instchk.o insthier.o \
-	plexlog-ada-conf plexlog-ada-conf.o
-	rm -f plexlog-ada.a plexlog-api.ali plexlog-api.o plexlog-dir_stack.ali \
-	plexlog-dir_stack.o plexlog-posix.ali plexlog-posix.o plexlog.ali plexlog.o \
-	plexlog_posix.o
+	UNIT_TESTS/log.ali UNIT_TESTS/log.o UNIT_TESTS/t_assert.o UNIT_TESTS/t_dir1 \
+	UNIT_TESTS/t_dir1.ali UNIT_TESTS/t_dir1.o UNIT_TESTS/t_init1 \
+	UNIT_TESTS/t_init1.ali UNIT_TESTS/t_init1.o UNIT_TESTS/t_init2 \
+	UNIT_TESTS/t_init2.ali UNIT_TESTS/t_init2.o UNIT_TESTS/t_lockerror1 \
+	UNIT_TESTS/t_lockerror1.ali UNIT_TESTS/t_lockerror1.o UNIT_TESTS/t_open1 \
+	UNIT_TESTS/t_open1.ali UNIT_TESTS/t_open1.o UNIT_TESTS/t_space \
+	UNIT_TESTS/t_space.ali UNIT_TESTS/t_space.o UNIT_TESTS/test.a \
+	UNIT_TESTS/test.ali UNIT_TESTS/test.o UNIT_TESTS/write UNIT_TESTS/write.o \
+	ctxt/bindir.c ctxt/bindir.o ctxt/ctxt.a ctxt/dlibdir.c ctxt/dlibdir.o \
+	ctxt/incdir.c ctxt/incdir.o ctxt/repos.c ctxt/repos.o ctxt/slibdir.c \
+	ctxt/slibdir.o ctxt/version.c ctxt/version.o deinstaller deinstaller.o \
+	install-core.o install-error.o install-posix.o install-win32.o install.a \
+	installer installer.o instchk instchk.o insthier.o plexlog-ada-conf \
+	plexlog-ada-conf.o plexlog-ada.a plexlog-api.ali
+	rm -f plexlog-api.o plexlog-dir_stack.ali plexlog-dir_stack.o plexlog-posix.ali \
+	plexlog-posix.o plexlog.ali plexlog.o plexlog_posix.o
 ext_clean:
 	rm -f conf-adatype conf-cctype conf-ldtype conf-sosuffix conf-systype mk-ctxt
 

@@ -6,24 +6,23 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include <corelib/scan.h>
-
 int
 main(int argc, char *argv[])
 {
   struct timeval t[2];
   FILE *fp;
-  unsigned long size;
+  unsigned long size = 0;
   unsigned long age;
   int fd;
 
   if (argc < 3) errx(2, "usage: file age [size]");
 
-  if (!scan_ulong(argv[2], &age))
-    errx(2, "age must be numeric");
-  if (argc > 3)
-    if (!scan_ulong(argv[3], &size))
-      errx(2, "size must be numeric");
+  age = strtol (argv[2], 0, 10);
+  if (!age) errx(2, "age must be numeric");  
+
+  if (argc > 3) {
+    size = strtol (argv[2], 0, 10);
+  }
 
   fp = fopen(argv[1], "wb");
   if (!fp) err(2, "fopen");

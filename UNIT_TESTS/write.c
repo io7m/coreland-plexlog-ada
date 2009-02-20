@@ -1,7 +1,6 @@
 #include <err.h>
 #include <stdio.h>
-
-#include <corelib/scan.h>
+#include <stdlib.h>
 
 int
 main(int argc, char *argv[])
@@ -10,7 +9,8 @@ main(int argc, char *argv[])
 
   if (argc < 3) errx(2, "usage: num string");
 
-  if (!scan_ulong(argv[1], &num))
+  num = strtol (argv[1], 0, 10);
+  if (!num)
     errx(2, "num must be numeric");
 
   for (;;) {

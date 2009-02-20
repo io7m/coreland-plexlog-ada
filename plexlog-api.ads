@@ -78,6 +78,6 @@ private
     Dir_Stack    : Plexlog.Dir_Stack.Dir_Stack_t;
   end record;
 
-  function Locked (Context : in Plexlog_t) return Boolean;
+  function Have_Directory_Lock (Context : in Plexlog_t) return Boolean;
 
 end Plexlog.API;

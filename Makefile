@@ -9,7 +9,8 @@ UNIT_TESTS/log UNIT_TESTS/log.ali UNIT_TESTS/log.o UNIT_TESTS/rotate \
 UNIT_TESTS/rotate.o UNIT_TESTS/t_assert.o UNIT_TESTS/t_dir1 \
 UNIT_TESTS/t_dir1.ali UNIT_TESTS/t_dir1.o UNIT_TESTS/t_init1 \
 UNIT_TESTS/t_init1.ali UNIT_TESTS/t_init1.o UNIT_TESTS/t_init2 \
-UNIT_TESTS/t_init2.ali UNIT_TESTS/t_init2.o UNIT_TESTS/test.a \
+UNIT_TESTS/t_init2.ali UNIT_TESTS/t_init2.o UNIT_TESTS/t_open1 \
+UNIT_TESTS/t_open1.ali UNIT_TESTS/t_open1.o UNIT_TESTS/test.a \
 UNIT_TESTS/test.ali UNIT_TESTS/test.o UNIT_TESTS/write UNIT_TESTS/write.o \
 ctxt/bindir.o ctxt/ctxt.a ctxt/dlibdir.o ctxt/incdir.o ctxt/repos.o \
 ctxt/slibdir.o ctxt/version.o deinstaller deinstaller.o install-core.o \
@@ -213,6 +214,20 @@ ada-compile UNIT_TESTS/t_init2.adb plexlog-api.ali
 UNIT_TESTS/t_init2.o:\
 UNIT_TESTS/t_init2.ali
 
+UNIT_TESTS/t_open1:\
+ada-bind ada-link UNIT_TESTS/t_open1.ald UNIT_TESTS/t_open1.ali \
+UNIT_TESTS/test.ali plexlog-dir_stack.ali plexlog-posix.ali plexlog.ali \
+plexlog-ada.a
+	./ada-bind UNIT_TESTS/t_open1.ali
+	./ada-link UNIT_TESTS/t_open1 UNIT_TESTS/t_open1.ali plexlog-ada.a
+
+UNIT_TESTS/t_open1.ali:\
+ada-compile UNIT_TESTS/t_open1.adb plexlog-api.ali
+	./ada-compile UNIT_TESTS/t_open1.adb
+
+UNIT_TESTS/t_open1.o:\
+UNIT_TESTS/t_open1.ali
+
 UNIT_TESTS/test.a:\
 cc-slib UNIT_TESTS/test.sld UNIT_TESTS/test.o
 	./cc-slib UNIT_TESTS/test UNIT_TESTS/test.o
@@ -267,11 +282,11 @@ mk-adatype
 	./mk-adatype > conf-adatype.tmp && mv conf-adatype.tmp conf-adatype
 
 conf-cctype:\
-conf-cc conf-cc mk-cctype
+conf-cc mk-cctype
 	./mk-cctype > conf-cctype.tmp && mv conf-cctype.tmp conf-cctype
 
 conf-ldtype:\
-conf-ld conf-ld mk-ldtype
+conf-ld mk-ldtype
 	./mk-ldtype > conf-ldtype.tmp && mv conf-ldtype.tmp conf-ldtype
 
 conf-sosuffix:\
@@ -471,7 +486,8 @@ obj_clean:
 	UNIT_TESTS/rotate.o UNIT_TESTS/t_assert.o UNIT_TESTS/t_dir1 \
 	UNIT_TESTS/t_dir1.ali UNIT_TESTS/t_dir1.o UNIT_TESTS/t_init1 \
 	UNIT_TESTS/t_init1.ali UNIT_TESTS/t_init1.o UNIT_TESTS/t_init2 \
-	UNIT_TESTS/t_init2.ali UNIT_TESTS/t_init2.o UNIT_TESTS/test.a \
+	UNIT_TESTS/t_init2.ali UNIT_TESTS/t_init2.o UNIT_TESTS/t_open1 \
+	UNIT_TESTS/t_open1.ali UNIT_TESTS/t_open1.o UNIT_TESTS/test.a \
 	UNIT_TESTS/test.ali UNIT_TESTS/test.o UNIT_TESTS/write UNIT_TESTS/write.o \
 	ctxt/bindir.c ctxt/bindir.o ctxt/ctxt.a ctxt/dlibdir.c ctxt/dlibdir.o \
 	ctxt/incdir.c ctxt/incdir.o ctxt/repos.c ctxt/repos.o ctxt/slibdir.c \
@@ -479,7 +495,8 @@ obj_clean:
 	install-core.o install-error.o install-posix.o install-win32.o install.a \
 	installer installer.o instchk instchk.o insthier.o plexlog-ada.a \
 	plexlog-api.ali plexlog-api.o plexlog-dir_stack.ali plexlog-dir_stack.o \
-	plexlog-posix.ali plexlog-posix.o plexlog.ali plexlog.o plexlog_posix.o
+	plexlog-posix.ali plexlog-posix.o plexlog.ali plexlog.o
+	rm -f plexlog_posix.o
 ext_clean:
 	rm -f conf-adatype conf-cctype conf-ldtype conf-sosuffix conf-systype mk-ctxt
 

@@ -2,7 +2,6 @@ with Ada.Calendar;
 with Ada.Characters.Latin_1;
 with Ada.Containers.Indefinite_Vectors;
 with Ada.Directories;
--- with Ada.Exceptions;
 with Ada.Streams;
 with Ada.Strings.Fixed;
 with Ada.Strings;
@@ -13,7 +12,6 @@ pragma Elaborate_All (Ada.Calendar);
 pragma Elaborate_All (Ada.Characters.Latin_1);
 pragma Elaborate_All (Ada.Containers.Indefinite_Vectors);
 pragma Elaborate_All (Ada.Directories);
--- pragma Elaborate_All (Ada.Exceptions);
 pragma Elaborate_All (Ada.Streams);
 pragma Elaborate_All (Ada.Strings);
 pragma Elaborate_All (Ada.Strings.Fixed);
@@ -23,7 +21,6 @@ pragma Elaborate_All (chrono.TAIA);
 package body Plexlog.API is
   package Calendar renames Ada.Calendar;
   package Directories renames Ada.Directories;
---  package Exceptions renames Ada.Exceptions;
   package F_Strings renames Ada.Strings.Fixed;
   package Stream_IO renames Ada.Streams.Stream_IO;
   package Streams renames Ada.Streams;
@@ -31,6 +28,63 @@ package body Plexlog.API is
 
   use type POSIX.FD_t;
   use type Stream_IO.Count;
+
+  --
+  -- Log file is currently locked?
+  --
+
+  function Have_Directory_Lock (Context : in Plexlog_t) return Boolean is
+  begin
+    return Context.Lock_FD /= POSIX.Invalid_FD;
+  end Have_Directory_Lock;
+
+  --
+  -- Relinquish write lock.
+  --
+
+  procedure Unlock_Directory (Context : in out Plexlog_t) is
+    pragma Assert (Have_Directory_Lock (Context));
+  begin
+    Dir_Stack.Pop (Context.Dir_Stack);
+
+    if not POSIX.FD_Write_Unlock (Context.Lock_FD) then
+      raise Lock_Error with "could not unlock file";
+    end if;
+
+    if not POSIX.Close (Context.Lock_FD) then
+      raise Lock_Error with "could not close lock descriptor";
+    end if;
+
+    Context.Lock_FD := POSIX.Invalid_FD;
+  exception
+    when Dir_Stack.Pop_Error =>
+      raise Lock_Error with "could not remove old directory descriptor";
+  end Unlock_Directory;
+
+  --
+  -- Acquire write lock.
+  --
+
+  procedure Lock_Directory (Context : in out Plexlog_t) is
+    pragma Assert (not Have_Directory_Lock (Context));
+  begin
+    Dir_Stack.Push_FD (Context.Dir_Stack, Context.Log_Dir_FD);
+
+    Context.Lock_FD := POSIX.Open_Create ("lock");
+    if Context.Lock_FD = POSIX.Invalid_FD then
+      raise Lock_Error with "could not open lock";
+    end if;
+
+    if not POSIX.FD_Write_Lock (Context.Lock_FD) then
+      raise Lock_Error with "could not set lock on file";
+    end if;
+  exception
+    when Dir_Stack.Push_Error =>
+      raise Lock_Error with "could not switch to log directory";
+    when Lock_Error =>
+      Unlock_Directory (Context);
+      raise;
+  end Lock_Directory;
 
   --
   -- Remove oldest log files.
@@ -58,6 +112,9 @@ package body Plexlog.API is
     Log_File_Vectors.Generic_Sorting (Log_File_Compare);
 
   procedure Rotate_Remove_Old (Context : in Plexlog_t) is
+    pragma Assert (Have_Directory_Lock (Context));
+    pragma Assert (not Stream_IO.Is_Open (Context.Log_File));
+
     Log_List : Log_File_Vectors.Vector;
 
     -- Collect current log files.
@@ -112,63 +169,6 @@ package body Plexlog.API is
       end if;
     end;
   end Rotate_Remove_Old;
-
-  --
-  -- Log file is currently locked?
-  --
-
-  function Locked (Context : in Plexlog_t) return Boolean is
-  begin
-    return Context.Lock_FD /= POSIX.Invalid_FD;
-  end Locked;
-
-  --
-  -- Relinquish write lock.
-  --
-
-  procedure Unlock (Context : in out Plexlog_t) is
-  begin
-    pragma Assertion (Locked (Context), "not locked");
-    Dir_Stack.Pop (Context.Dir_Stack);
-
-    if not POSIX.FD_Write_Unlock (Context.Lock_FD) then
-      raise Lock_Error with "could not unlock file";
-    end if;
-
-    if not POSIX.Close (Context.Lock_FD) then
-      raise Lock_Error with "could not close lock descriptor";
-    end if;
-
-    Context.Lock_FD := POSIX.Invalid_FD;
-  exception
-    when Dir_Stack.Pop_Error =>
-      raise Lock_Error with "could not remove old directory descriptor";
-  end Unlock;
-
-  --
-  -- Acquire write lock.
-  --
-
-  procedure Lock (Context : in out Plexlog_t) is
-  begin
-    pragma Assertion (not Locked (Context), "already locked");
-    Dir_Stack.Push_FD (Context.Dir_Stack, Context.Log_Dir_FD);
-
-    Context.Lock_FD := POSIX.Open_Create ("lock");
-    if Context.Lock_FD = POSIX.Invalid_FD then
-      raise Lock_Error with "could not open lock";
-    end if;
-
-    if not POSIX.FD_Write_Lock (Context.Lock_FD) then
-      raise Lock_Error with "could not set lock on file";
-    end if;
-  exception
-    when Dir_Stack.Push_Error =>
-      raise Lock_Error with "could not switch to log directory";
-    when Lock_Error =>
-      Unlock (Context);
-      raise;
-  end Lock;
 
   --
   -- Character -> NN base16.
@@ -261,13 +261,13 @@ package body Plexlog.API is
 
   type String_Access_t is access constant String;
 
-  Log_None_String   : aliased String := "";
-  Log_Debug_String  : aliased String := "debug";
-  Log_Info_String   : aliased String := "info";
-  Log_Notice_String : aliased String := "notice";
-  Log_Warn_String   : aliased String := "warn";
-  Log_Error_String  : aliased String := "error";
-  Log_Fatal_String  : aliased String := "fatal";
+  Log_None_String   : aliased constant String := "";
+  Log_Debug_String  : aliased constant String := "debug";
+  Log_Info_String   : aliased constant String := "info";
+  Log_Notice_String : aliased constant String := "notice";
+  Log_Warn_String   : aliased constant String := "warn";
+  Log_Error_String  : aliased constant String := "error";
+  Log_Fatal_String  : aliased constant String := "fatal";
 
   Level_Strings : constant array (Level_t range <>) of String_Access_t :=
     (Log_None   => Log_None_String'Access,
@@ -289,7 +289,9 @@ package body Plexlog.API is
   --
 
   function Log_Is_Empty
-    (Context : in Plexlog_t) return Boolean is
+    (Context : in Plexlog_t) return Boolean
+  is
+    pragma Assert (Stream_IO.Is_Open (Context.Log_File));
   begin
     return Context.Log_Size = 0;
   end Log_Is_Empty;
@@ -297,7 +299,9 @@ package body Plexlog.API is
 
   function Log_Has_Space_For
     (Context : in Plexlog_t;
-     Length  : in Natural) return Boolean is
+     Length  : in Natural) return Boolean
+  is
+    pragma Assert (Stream_IO.Is_Open (Context.Log_File));
   begin
     return (Context.Log_Size + Stream_IO.Count (Length)
       + Message_Minimum_Length) < Stream_IO.Count (Context.Size_Max);
@@ -309,11 +313,21 @@ package body Plexlog.API is
   --
 
   procedure Open_Current (Context : in out Plexlog_t) is
+    pragma Assert (Have_Directory_Lock (Context));
+    pragma Assert (not Stream_IO.Is_Open (Context.Log_File));
   begin
-    Stream_IO.Create
-      (File => Context.Log_File,
-       Mode => Stream_IO.Append_File,
-       Name => "current");
+    begin
+      Stream_IO.Open
+        (File => Context.Log_File,
+         Mode => Stream_IO.Append_File,
+         Name => "current");
+    exception
+      when Stream_IO.Name_Error =>
+        Stream_IO.Create
+         (File => Context.Log_File,
+          Mode => Stream_IO.Append_File,
+          Name => "current");
+    end;
     Context.Log_Size := Stream_IO.Size (Context.Log_File);
   end Open_Current;
 
@@ -325,6 +339,9 @@ package body Plexlog.API is
     (Context : in Plexlog_t;
      Data    : in String)
   is
+    pragma Assert (Have_Directory_Lock (Context));
+    pragma Assert (Stream_IO.Is_Open (Context.Log_File));
+
     subtype Source is String (1 .. Data'Last);
     subtype Target is Streams.Stream_Element_Array
       (1 .. Streams.Stream_Element_Offset (Data'Last));
@@ -343,7 +360,10 @@ package body Plexlog.API is
     (Context      : in out Plexlog_t;
      Level_String : in String := "";
      PID_String   : in String;
-     TAIA_Label   : in chrono.TAIA.Label_TAI64N_t) is
+     TAIA_Label   : in chrono.TAIA.Label_TAI64N_t)
+  is
+    pragma Assert (Have_Directory_Lock (Context));
+    pragma Assert (Stream_IO.Is_Open (Context.Log_File));
   begin
     if Level_String /= "" then
       Write_Raw
@@ -371,6 +391,9 @@ package body Plexlog.API is
      Limit   : in Natural := 0;
      Status  : out Log_Status_t)
   is
+    pragma Assert (Have_Directory_Lock (Context));
+    pragma Assert (Stream_IO.Is_Open (Context.Log_File));
+
     Filtered_Length : Natural;
     Buffer          : Character_Buffer_t;
   begin
@@ -415,6 +438,8 @@ package body Plexlog.API is
      PID_String   : in String;
      Data         : in String)
   is
+    pragma Assert (Have_Directory_Lock (Context));
+
     Max_Length      : constant Natural := Natural (Context.Size_Max) - Message_Minimum_Length;
     Filtered_Length : Natural := Filtered_Message_Length (Data);
     Current_Offset  : Natural := 0;
@@ -471,6 +496,11 @@ package body Plexlog.API is
            Status  => Status);
       end;
     end if;
+
+  exception
+    when others =>
+      Stream_IO.Close (Context.Log_File);
+      raise;
   end Write_With_Rotate;
 
   --
@@ -479,7 +509,9 @@ package body Plexlog.API is
 
   procedure Open
     (Context : in out Plexlog_t;
-     Path    : in String) is
+     Path    : in String)
+  is
+    pragma Assert (not Have_Directory_Lock (Context));
   begin
     Context.Log_Dir_FD := POSIX.Open_Read (Path);
     if Context.Log_Dir_FD = POSIX.Invalid_FD then
@@ -513,13 +545,16 @@ package body Plexlog.API is
      Level   : in Level_t;
      Data    : in String)
   is
+    pragma Assert (not Have_Directory_Lock (Context));
+    pragma Assert (not Stream_IO.Is_Open (Context.Log_File));
+
     TAIA       : chrono.TAIA.TAIA_t;
     TAIA_Label : chrono.TAIA.Label_TAI64N_t;
   begin
     chrono.TAIA.Now (TAIA);
     chrono.TAIA.Label_TAI64N (TAIA, TAIA_Label);
 
-    Lock (Context);
+    Lock_Directory (Context);
     Open_Current (Context);
 
     if Context.Size_Limited then
@@ -535,18 +570,36 @@ package body Plexlog.API is
          Level_String => Level_String (Level),
          PID_String   => F_Strings.Trim (POSIX.PID_t'Image (POSIX.Get_PID), Strings.Left),
          TAIA_Label   => TAIA_Label);
+
+      declare
+        Status : Log_Status_t;
+      begin
+        Write_Message
+          (Context => Context,
+           Message => Data,
+           Status  => Status);
+        pragma Assert (Status.Characters_Processed = Data'Length);
+      end;
     end if;
 
-    Unlock (Context);
+    pragma Assert (Stream_IO.Is_Open (Context.Log_File));
+    Stream_IO.Close (Context.Log_File);
+
+    Unlock_Directory (Context);
+    pragma Assert (not Stream_IO.Is_Open (Context.Log_File));
   exception
     when others =>
-      Unlock (Context);
+      pragma Assert (not Stream_IO.Is_Open (Context.Log_File));
+      Unlock_Directory (Context);
       raise;
   end Write;
 
   procedure Rotate
     (Context : in out Plexlog_t)
   is
+    pragma Assert (Have_Directory_Lock (Context));
+    pragma Assert (not Stream_IO.Is_Open (Context.Log_File));
+
     TAIA       : chrono.TAIA.TAIA_t;
     TAIA_Label : chrono.TAIA.Label_TAI64N_t;
   begin

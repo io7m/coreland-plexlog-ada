@@ -16,9 +16,10 @@ UNIT_TESTS/t_space.o UNIT_TESTS/test.a UNIT_TESTS/test.ali UNIT_TESTS/test.o \
 UNIT_TESTS/write UNIT_TESTS/write.o ctxt/bindir.o ctxt/ctxt.a ctxt/dlibdir.o \
 ctxt/incdir.o ctxt/repos.o ctxt/slibdir.o ctxt/version.o deinstaller \
 deinstaller.o install-core.o install-error.o install-posix.o install-win32.o \
-install.a installer installer.o instchk instchk.o insthier.o plexlog-ada.a \
-plexlog-api.ali plexlog-api.o plexlog-dir_stack.ali plexlog-dir_stack.o \
-plexlog-posix.ali plexlog-posix.o plexlog.ali plexlog.o plexlog_posix.o
+install.a installer installer.o instchk instchk.o insthier.o plexlog-ada-conf \
+plexlog-ada-conf.o plexlog-ada.a plexlog-api.ali plexlog-api.o \
+plexlog-dir_stack.ali plexlog-dir_stack.o plexlog-posix.ali plexlog-posix.o \
+plexlog.ali plexlog.o plexlog_posix.o
 
 # Mkf-deinstall
 deinstall: deinstaller conf-sosuffix
@@ -66,9 +67,6 @@ libs-corelib-S:
 libs-integer-S:
 	@echo SYSDEPS integer-libs-S run create libs-integer-S 
 	@(cd SYSDEPS/modules/integer-libs-S && ./run)
-flags-plexlog:
-	@echo SYSDEPS plexlog-flags run create flags-plexlog 
-	@(cd SYSDEPS/modules/plexlog-flags && ./run)
 libs-plexlog-S:
 	@echo SYSDEPS plexlog-libs-S run create libs-plexlog-S 
 	@(cd SYSDEPS/modules/plexlog-libs-S && ./run)
@@ -95,9 +93,6 @@ corelib-libs-S_clean:
 integer-libs-S_clean:
 	@echo SYSDEPS integer-libs-S clean libs-integer-S 
 	@(cd SYSDEPS/modules/integer-libs-S && ./clean)
-plexlog-flags_clean:
-	@echo SYSDEPS plexlog-flags clean flags-plexlog 
-	@(cd SYSDEPS/modules/plexlog-flags && ./clean)
 plexlog-libs-S_clean:
 	@echo SYSDEPS plexlog-libs-S clean libs-plexlog-S 
 	@(cd SYSDEPS/modules/plexlog-libs-S && ./clean)
@@ -111,7 +106,6 @@ chrono-ada-libs-S_clean \
 chrono-libs-S_clean \
 corelib-libs-S_clean \
 integer-libs-S_clean \
-plexlog-flags_clean \
 plexlog-libs-S_clean \
 
 
@@ -286,7 +280,7 @@ ada-srcmap-all:\
 ada-srcmap conf-adacomp conf-adatype conf-systype
 
 cc-compile:\
-conf-cc conf-cctype conf-systype conf-cflags conf-ccfflist flags-plexlog
+conf-cc conf-cctype conf-systype conf-cflags
 
 cc-link:\
 conf-ld conf-ldtype conf-systype conf-ldflags conf-ldfflist libs-plexlog-S \
@@ -451,6 +445,14 @@ conf-systype
 mk-systype:\
 conf-cc conf-ld
 
+plexlog-ada-conf:\
+cc-link plexlog-ada-conf.ld plexlog-ada-conf.o ctxt/ctxt.a
+	./cc-link plexlog-ada-conf plexlog-ada-conf.o ctxt/ctxt.a
+
+plexlog-ada-conf.o:\
+cc-compile plexlog-ada-conf.c ctxt.h
+	./cc-compile plexlog-ada-conf.c
+
 plexlog-ada.a:\
 cc-slib plexlog-ada.sld plexlog.o plexlog-api.o plexlog-posix.o plexlog_posix.o
 	./cc-slib plexlog-ada plexlog.o plexlog-api.o plexlog-posix.o plexlog_posix.o
@@ -514,9 +516,10 @@ obj_clean:
 	ctxt/repos.o ctxt/slibdir.c ctxt/slibdir.o ctxt/version.c ctxt/version.o \
 	deinstaller deinstaller.o install-core.o install-error.o install-posix.o \
 	install-win32.o install.a installer installer.o instchk instchk.o insthier.o \
-	plexlog-ada.a plexlog-api.ali
-	rm -f plexlog-api.o plexlog-dir_stack.ali plexlog-dir_stack.o plexlog-posix.ali \
-	plexlog-posix.o plexlog.ali plexlog.o plexlog_posix.o
+	plexlog-ada-conf plexlog-ada-conf.o
+	rm -f plexlog-ada.a plexlog-api.ali plexlog-api.o plexlog-dir_stack.ali \
+	plexlog-dir_stack.o plexlog-posix.ali plexlog-posix.o plexlog.ali plexlog.o \
+	plexlog_posix.o
 ext_clean:
 	rm -f conf-adatype conf-cctype conf-ldtype conf-sosuffix conf-systype mk-ctxt
 

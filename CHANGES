@@ -2,3 +2,4 @@
 20090220 code: reimplementation in Ada.
 20090220 version: plexlog-ada 1.0.0
 20090220 code: removed old tests referencing C plexlog.
+20090222 code: added missing fd_lock code.

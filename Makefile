@@ -286,11 +286,11 @@ mk-adatype
 	./mk-adatype > conf-adatype.tmp && mv conf-adatype.tmp conf-adatype
 
 conf-cctype:\
-conf-cc conf-cc mk-cctype
+conf-cc mk-cctype
 	./mk-cctype > conf-cctype.tmp && mv conf-cctype.tmp conf-cctype
 
 conf-ldtype:\
-conf-ld conf-ld mk-ldtype
+conf-ld mk-ldtype
 	./mk-ldtype > conf-ldtype.tmp && mv conf-ldtype.tmp conf-ldtype
 
 conf-sosuffix:\
@@ -445,8 +445,10 @@ cc-compile plexlog-ada-conf.c ctxt.h
 	./cc-compile plexlog-ada-conf.c
 
 plexlog-ada.a:\
-cc-slib plexlog-ada.sld plexlog.o plexlog-api.o plexlog-posix.o plexlog_posix.o
-	./cc-slib plexlog-ada plexlog.o plexlog-api.o plexlog-posix.o plexlog_posix.o
+cc-slib plexlog-ada.sld plexlog-api.o plexlog-dir_stack.o plexlog-posix.o \
+plexlog.o plexlog_posix.o
+	./cc-slib plexlog-ada plexlog-api.o plexlog-dir_stack.o plexlog-posix.o \
+	plexlog.o plexlog_posix.o
 
 plexlog-api.ads:\
 plexlog.ali plexlog-dir_stack.ali plexlog-posix.ali

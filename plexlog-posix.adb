@@ -46,7 +46,7 @@ package body Plexlog.POSIX is
     null;
   end Close;
 
-  function Open_Read (Path : in string) return FD_t is
+  function Open_Read (Path : in String) return FD_t is
     cpath : aliased C.char_array := C.To_C (Path);
   begin
     return CBinds.open
@@ -56,7 +56,7 @@ package body Plexlog.POSIX is
   end Open_Read;
 
   function Open_Create
-    (Path : in string;
+    (Path : in String;
      Mode : Mode_t := (Mode_User_RW or Mode_Group_R or Mode_Other_R))
       return FD_t
   is

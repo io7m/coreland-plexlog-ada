@@ -5,8 +5,8 @@ with test;
 procedure t_init1 is
   package Directories renames Ada.Directories;
 
-  Open_OK  : boolean := true;
-  Close_OK : boolean := true;
+  Open_OK  : Boolean := True;
+  Close_OK : Boolean := True;
   context  : Plexlog.API.Plexlog_t;
 
 begin
@@ -17,8 +17,8 @@ begin
     Plexlog.API.Open (context, "testdata/init");
     Plexlog.API.Close (context);
   exception
-    when Plexlog.API.Open_Error => Open_OK := false;
-    when Plexlog.API.Close_Error => Close_OK := false;
+    when Plexlog.API.Open_Error => Open_OK := False;
+    when Plexlog.API.Close_Error => Close_OK := False;
   end;
 
   test.assert

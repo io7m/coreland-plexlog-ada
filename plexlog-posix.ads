@@ -37,11 +37,11 @@ package Plexlog.POSIX is
 
   Invalid_FD : constant FD_t := -1;
 
-  function Open_Read (Path : in string) return FD_t;
+  function Open_Read (Path : in String) return FD_t;
   pragma Inline (Open_Read);
 
   function Open_Create
-    (Path : in string;
+    (Path : in String;
      Mode : Mode_t := (Mode_User_RW or Mode_Group_R or Mode_Other_R)) return FD_t;
   pragma Inline (Open_Create);
 

@@ -3,7 +3,7 @@ with test;
 
 procedure t_open1 is
   Context : Plexlog.API.Plexlog_t;
-  Caught  : Boolean := false;
+  Caught  : Boolean := False;
 begin
 
   begin
@@ -11,7 +11,7 @@ begin
       (Context => Context,
        Path    => "/nonexistent");
   exception
-    when Plexlog.API.Open_Error => Caught := true;
+    when Plexlog.API.Open_Error => Caught := True;
   end;
 
   test.assert

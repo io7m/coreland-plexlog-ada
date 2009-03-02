@@ -6,17 +6,6 @@ with Ada.Streams;
 with Ada.Strings.Fixed;
 with Ada.Strings;
 with Ada.Unchecked_Conversion;
-with chrono.TAIA;
-
-pragma Elaborate_All (Ada.Calendar);
-pragma Elaborate_All (Ada.Characters.Latin_1);
-pragma Elaborate_All (Ada.Containers.Indefinite_Vectors);
-pragma Elaborate_All (Ada.Directories);
-pragma Elaborate_All (Ada.Streams);
-pragma Elaborate_All (Ada.Strings);
-pragma Elaborate_All (Ada.Strings.Fixed);
-pragma Elaborate_All (Ada.Unchecked_Conversion);
-pragma Elaborate_All (chrono.TAIA);
 
 package body Plexlog.API is
   package Calendar renames Ada.Calendar;
@@ -128,7 +117,7 @@ package body Plexlog.API is
     procedure Collect_Log_File
       (Dir_Entry : in Directories.Directory_Entry_Type)
     is
-      Name : constant string := Directories.Simple_Name (Dir_Entry);
+      Name : constant String := Directories.Simple_Name (Dir_Entry);
     begin
       if Name (1) = '@' then
         declare
@@ -155,7 +144,7 @@ package body Plexlog.API is
     Directories.Search
       (Directory => Directories.Current_Directory,
        Pattern   => "",
-       Filter    => (Directories.Ordinary_File => true, others => false),
+       Filter    => (Directories.Ordinary_File => True, others => False),
        Process   => Collect_Log_File'Access);
 
     -- Sort collected log files by date.
@@ -199,9 +188,9 @@ package body Plexlog.API is
     end if;
 
     Rename_Current : declare
-      Label_String : constant string := "@" & string (TAIA_Label);
+      Label_String : constant String := "@" & String (TAIA_Label);
     begin
-      if not POSIX.Rename ("current", "@" & string (TAIA_Label)) then
+      if not POSIX.Rename ("current", "@" & String (TAIA_Label)) then
         raise Rotate_Error with "could not rename current to " & Label_String;
       end if;
     end Rename_Current;
@@ -233,7 +222,7 @@ package body Plexlog.API is
 
   procedure Filter_Character
     (Item   : in Character;
-     Write  : in Boolean := true;
+     Write  : in Boolean := True;
      Length : out Positive;
      Buffer : out Character_Buffer_t)
   is
@@ -245,7 +234,7 @@ package body Plexlog.API is
       if Write then
         Buffer (1) := '\';
         Buffer (2) := 'x';
-        Character_To_Hex (Item, string (Buffer (3 .. 4)));
+        Character_To_Hex (Item, String (Buffer (3 .. 4)));
       end if;
       if Character'Pos (Item) >= 16#0f# then
         Length := 4;
@@ -284,7 +273,7 @@ package body Plexlog.API is
     for Index in Data'Range loop
       Filter_Character
         (Item   => Data (Index),
-         Write  => false,
+         Write  => False,
          Length => Current_Length,
          Buffer => Buffer);
       Accumulated_Length := Accumulated_Length + Current_Length;
@@ -407,11 +396,11 @@ package body Plexlog.API is
     if Level_String /= "" then
       Write_Raw
         (Context => Context,
-         Data    => String (TAIA_Label) & " " & PID_String & " " & Level_String & ": ");
+         Data    => "@" & String (TAIA_Label) & " " & PID_String & " " & Level_String & ": ");
     else
       Write_Raw
         (Context => Context,
-         Data    => String (TAIA_Label) & " " & PID_String);
+         Data    => "@" & String (TAIA_Label) & " " & PID_String);
     end if;
   end Write_Line_Prefix;
 
@@ -455,7 +444,7 @@ package body Plexlog.API is
       begin
         Write_Raw
           (Context => Context,
-           Data    => string (Buffer (Min .. Max)));
+           Data    => String (Buffer (Min .. Max)));
       end;
 
       Status.Characters_Processed := Status.Characters_Processed + 1;
@@ -582,13 +571,13 @@ package body Plexlog.API is
      Max_File_Size : in File_Size_t) is
   begin
     Context.Size_Max     := Max_File_Size;
-    Context.Size_Limited := true;
+    Context.Size_Limited := True;
   end Set_Maximum_File_Size;
 
   procedure Set_Unlimited_File_Size
     (Context : in out Plexlog_t) is
   begin
-    Context.Size_Limited := false;
+    Context.Size_Limited := False;
   end Set_Unlimited_File_Size;
 
   procedure Write

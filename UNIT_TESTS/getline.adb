@@ -4,8 +4,8 @@ package body getline is
     (file :  in Ada.Text_IO.File_Type;
      item : out Ada.Strings.Unbounded.Unbounded_String)
   is
-    line : string (1 .. 128);
-    last : natural;
+    line : String (1 .. 128);
+    last : Natural;
   begin
     loop
       Ada.Text_IO.Get_Line

@@ -7,7 +7,7 @@ with test;
 procedure t_lockerror1 is
   package Directories renames Ada.Directories;
 
-  Caught   : Boolean := false;
+  Caught   : Boolean := False;
   Context  : Plexlog.API.Plexlog_t;
 begin
 
@@ -24,7 +24,7 @@ begin
   begin
     Plexlog.API.Write (Context, "failure");
   exception
-    when Plexlog.API.Lock_Error => Caught := true;
+    when Plexlog.API.Lock_Error => Caught := True;
   end;
   test.assert
     (check        => Caught,

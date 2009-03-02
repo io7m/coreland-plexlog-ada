@@ -73,7 +73,7 @@ private
     1 + chrono.TAIA.Label_TAI64N_Size + 1 + 10 + 1 + 7 + 1;
 
   type Plexlog_t is record
-    Size_Limited : Boolean                          := true;
+    Size_Limited : Boolean                          := True;
     Size_Max     : File_Size_t                      := Size_Default;
     Files_Max    : Natural                          := Files_Default;
     Log_Dir_FD   : POSIX.FD_t                       := POSIX.Invalid_FD;

@@ -9,7 +9,7 @@ procedure log is
   package IO renames Ada.Text_IO;
   package UStrings renames Ada.Strings.Unbounded;
 
-  max_files : natural;
+  max_files : Natural;
   max_size  : Plexlog.API.File_Size_t;
   line      : UStrings.Unbounded_String;
   context   : Plexlog.API.Plexlog_t;
@@ -17,10 +17,10 @@ procedure log is
 begin
   if Ada.Command_Line.Argument_Count /= 3 then
     IO.Put_Line (IO.Current_Error, "usage: dir max_file max_size");
-    raise program_error;
+    raise Program_Error;
   end if;
 
-  max_files := natural'Value (Ada.Command_Line.Argument (2));
+  max_files := Natural'Value (Ada.Command_Line.Argument (2));
   max_size  := Plexlog.API.File_Size_t'Value (Ada.Command_Line.Argument (3));
 
   Ada.Text_IO.Put_Line

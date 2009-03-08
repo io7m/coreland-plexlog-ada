@@ -236,11 +236,11 @@ package body Plexlog.API is
         Buffer (2) := 'x';
         Character_To_Hex (Item, String (Buffer (3 .. 4)));
       end if;
-      if Character'Pos (Item) >= 16#0f# then
+--      if Character'Pos (Item) >= 16#0f# then
         Length := 4;
-      else
-        Length := 3;
-      end if;
+--      else
+--        Length := 3;
+--      end if;
       return;
     end if;
 

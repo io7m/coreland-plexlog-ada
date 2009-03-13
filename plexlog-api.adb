@@ -400,7 +400,7 @@ package body Plexlog.API is
     else
       Write_Raw
         (Context => Context,
-         Data    => "@" & String (TAIA_Label) & " " & PID_String);
+         Data    => "@" & String (TAIA_Label) & " " & PID_String & " ");
     end if;
   end Write_Line_Prefix;
 
